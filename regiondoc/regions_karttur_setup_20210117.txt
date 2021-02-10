@@ -1,0 +1,20 @@
+###### REGIONS #####
+
+#add_region_categories_v80.json Adds region categories to the db
+json/add_region_categories_v090.json
+
+#add_arbitrary_default_regions_vXX.json Adds global default regions to the db
+json/add_arbitrary_default_regions_v090.json
+
+#add_arctic_default_regions_vXX.json Adds global arctic regions to the db
+json/add_arctic_default_regions_v090.json
+
+#ancillary-import-kartturROI_2014.json Imports global countries
+json/ancillary-import-kartturROI_2014_v090.json
+
+#Adds countries, subregions and continents to the db
+json/add_default_regions_from-vector_v090.json
+
+#add_sub-sharan-africa_default_regions_vXX.json Adds Sub saharan africa region to the db
+#Requires that the global country and continent data are added
+json/add_Africa-Sub_Sahara_default-region_v090.json
