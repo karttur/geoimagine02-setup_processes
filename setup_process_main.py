@@ -5,6 +5,8 @@ Updated on 28 jan 2021
 @author: thomasgumbricht
 '''
 
+# Package application imports
+
 from setup_processes import SetupProcessesRegions, ModisTileCoords, Ease2NTileCoords6391
 
 def SetupDefaultRegions(prodDB):
@@ -31,8 +33,6 @@ def SetupDefaultRegions(prodDB):
     
     Climate = False
     
-    verbose = 1
-    
     '''Link to project file that sets up default regions, arbitrary regions and special regions. 
     '''
     if DefaultRegions:
@@ -44,7 +44,7 @@ def SetupDefaultRegions(prodDB):
     if MODIS:
         '''Stand alone script that defines the MODIS tile coordinates'''
         
-        #ModisTileCoords(prodDB)
+        ModisTileCoords(prodDB)
         
         '''
         exitstr = 'The script ModisTileCoords() produced a shape with all MODIS SIN tiles projected to Geographic coordiantes.\n \
@@ -82,15 +82,21 @@ def SetupDefaultRegions(prodDB):
         
         '''Stand alone script that links sentinel and modis, requires that all sentinel tiles are in the db'''
        
-        LinkSentineModisTiles()
+        pass
+    
+        #LinkSentineModisTiles()
 
     if MODIS and Landsat:
         
-        LinkLandsatModisTiles()
+        pass
+    
+        #LinkLandsatModisTiles()
 
     if Sentinel and Landsat:
         
-        LinkSentinelLandsatTiles()
+        pass
+    
+        #LinkSentinelLandsatTiles()
 
     if Ancillary:
         
@@ -102,8 +108,10 @@ def SetupDefaultRegions(prodDB):
     
     if Climate:
         ''' Climate data'''
+        
         projFN = 'climate_karttur_setup_20181116.txt'
-        Setup('climatedoc',projFN,verbose)
+        
+        #Setup('climatedoc',projFN,verbose)
     
 def SetupProcesses(prodDB):
     ''' Setupprocesses links to a text file defining Framework processes to define
@@ -130,6 +138,6 @@ if __name__ == "__main__":
     SetupProcesses(prodDB)
     
     # SetupDefaultRegions starts a subroutine with different region processing
-    #SetupDefaultRegions(prodDB)
+    SetupDefaultRegions(prodDB)
     
     exit(' REACHED THE END! ')

@@ -10,5 +10,10 @@ Thomas Gumbricht (thomas.gumbricht@karttur.com)
 
 """
 from .version import __version__, VERSION, metadataD
-from setup_processes.setup_process_class import PGsession, ProcessDefaultRegions
-from setup_processes.setup_process_process import SetupProcessesRegions, ModisTileCoords, Ease2NTileCoords, Ease2NTileCoords6391
+
+#from .setup_process_class import PGsession, ProcessDefaultRegions
+
+from .setup_process_process import SetupProcessesRegions, ModisTileCoords, Ease2NTileCoords, Ease2NTileCoords6391
+
+__all__ = ['PGsession', 'ProcessDefaultRegions','SetupProcessesRegions','ModisTileCoords',
+           'Ease2NTileCoords','Ease2NTileCoords6391']

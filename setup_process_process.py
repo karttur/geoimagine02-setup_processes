@@ -4,7 +4,25 @@ Created on 20 Jan 2021
 @author: thomasgumbricht
 '''
 
+# Standard library imports
+
+from os import path, makedirs
+
+from sys import exit
+
+# Third party imports
+
+import psycopg2
+
+from base64 import b64encode, b64decode
+
+import netrc
+
+# Package application imports
+
 from ancillary import ProcessAncillary
+
+from postgresdb import ManageAncillary
 
 from modis import ProcessModis
 
@@ -12,23 +30,10 @@ from postgresdb import ManageProcess, ManageRegion, ManageMODIS
 
 from gis import kt_gis as ktgis
 
-from os import path, makedirs
-
-from sys import exit
-
 from params import JsonParams
-
-from base64 import b64encode
-
-import netrc
-
-from setup_processes import PGsession
-
-from postgresdb import ManageAncillary
 
 from params.layers import VectorLayer
  
-
 def DbConnect(db):
     '''
     '''
@@ -48,6 +53,158 @@ def DbConnect(db):
     query = {'db':db, 'user':username, 'pswd':password}
     
     return query
+
+class PGsession:
+    """Connect to postgres server"""  
+     
+    def __init__(self, query):
+        """Connect to selected database"""
+        
+        query['pswd'] = b64decode(query['pswd']).decode('ascii')
+        
+        conn_string = "host='localhost' dbname='%(db)s' user='%(user)s' password='%(pswd)s'" %query
+                
+        self.conn = psycopg2.connect(conn_string)
+        
+        self.cursor = self.conn.cursor()
+            
+    def _DictToSelect(self, queryD):
+        '''
+        Converts a dictionary to Select statement 
+        '''
+        selectL = []
+        for key in queryD:
+            #statement = key operator value
+            statement = ' %(col)s %(op)s \'%(val)s\'' %{'col':key.replace('#',''), 'op':queryD[key]['op'], 'val':queryD[key]['val']}
+            selectL.append(statement)
+        self.select_query = "WHERE %(where)s" %{'where':' AND '.join(selectL)}  
+        return self.select_query
+    
+    def _SelectRootProcess(self,queryD):
+        '''
+        '''
+        self.cursor.execute("SELECT rootprocid, minuserstratum FROM process.subprocesses WHERE subprocid = '%(subprocid)s';" %queryD)
+        
+        record = self.cursor.fetchone()
+        
+        return record
+    
+    def _SelectUserCred(self, queryD):
+        '''
+        '''
+                
+        sql = "SELECT userid, usercat, stratum FROM userlocale.users WHERE userid = '%(user)s';" %queryD
+        
+        self.cursor.execute(sql)    
+        
+        self.userid, self.usercat, self.stratum = self.cursor.fetchone()
+                
+    def _SelectTractDefRegion(self, queryD):
+        '''
+        '''
+        #First check if this region is itself a defregion
+        
+        sql = "SELECT regionid FROM regions.defregions WHERE regionid = '%(tract)s';" %queryD
+        
+        self.cursor.execute(sql)
+        
+        rec = self.cursor.fetchone()
+        
+        if rec != None:
+        
+            return (rec[0], 'D')
+
+        sql = "SELECT parentid FROM regions.tracts WHERE tractid = '%(tract)s';" %queryD
+        
+        self.cursor.execute(sql) 
+        
+        rec = self.cursor.fetchone()
+        
+        if rec == None:
+            
+            return rec
+        
+        return (rec[0], 'T')
+        
+    def _SelectProcessSystem(self, queryD, paramL):
+        ''' Select system for this process
+        '''
+        
+        queryD['cols'] = " ,".join(paramL)
+        
+        sql = "SELECT %(cols)s FROM process.procsys WHERE subprocid = '%(subprocid)s' and system = '%(system)s';" %queryD
+
+        self.cursor.execute(sql)    
+        
+        record = self.cursor.fetchone()
+        
+        if record == None:
+                        
+            self.cursor.execute("SELECT srcsystem, dstsystem, srcdivision, dstdivisio FROM process.procsys WHERE subprocid = '%(subprocid)s' and system = '*';" %queryD)    
+
+            record = self.cursor.fetchone() 
+        
+        if record == None:
+            
+            exitstr = 'No records in _setup_process_class.PGsession.SelectProcessSystem'
+            
+            exit(exitstr)
+        
+        return dict(zip(paramL,record)) 
+    
+    def _SingleSearch(self,queryD, paramL,  table, schema, pq = False):
+        #self._GetTableKeys(schema, table)
+        selectQuery = {}
+        for item in queryD:
+
+            if isinstance(queryD[item],dict):
+                #preset operator and value
+                selectQuery[item] = queryD[item]
+            else:
+                selectQuery[item] = {'op':'=', 'val':queryD[item]}
+        wherestatement = self._DictToSelect(selectQuery)  
+        cols =  ','.join(paramL)
+        selectQuery = {'schema':schema, 'table':table, 'select': wherestatement, 'cols':cols}
+        
+        query = "SELECT %(cols)s FROM %(schema)s.%(table)s %(select)s" %selectQuery
+        if pq:
+            print ('SingleSearch query',query)
+        self.cursor.execute(query)
+        self.records = self.cursor.fetchone()
+        return self.records
+          
+    def _SelectMulti(self,queryD, paramL, table, schema):  
+        ''' Select multiple records from any schema.table
+        '''
+
+        selectQuery = {}
+        for item in queryD:
+
+            if isinstance(queryD[item],dict):
+                #preset operator and value
+                selectQuery[item] = queryD[item]
+            else:
+                selectQuery[item] = {'op':'=', 'val':queryD[item]}
+        wherestatement = self._DictToSelect(selectQuery) 
+
+        if len(paramL) == 1:
+            cols = paramL[0]
+        else:
+            cols =  ','.join(paramL)
+        selectQuery = {'schema':schema, 'table':table, 'select': wherestatement, 'cols':cols}      
+        query = "SELECT %(cols)s FROM %(schema)s.%(table)s %(select)s" %selectQuery
+ 
+        self.cursor.execute(query)
+        
+        self.records = self.cursor.fetchall()
+        
+        return self.records 
+    
+    def _Close(self):
+        
+        self.cursor.close()
+        
+        self.conn.close()   
 
 class ProcessProcess:  
     """"class for processes defining other processes"""  
@@ -945,7 +1102,7 @@ def Ease2NTileCoords6391(db, verbose = 1):
     
     print ('centery', centery)
     
-    BAlle
+    
     
     '''
     -15725.34707351 9009951.03827368
