@@ -20,19 +20,19 @@ import netrc
 
 # Package application imports
 
-from ancillary import ProcessAncillary
+from geoimagine.ancillary import ProcessAncillary
 
-from postgresdb import ManageAncillary
+from geoimagine.postgresdb import ManageAncillary
 
-from modis import ProcessModis
+from geoimagine.modis import ProcessModis
 
-from postgresdb import ManageProcess, ManageRegion, ManageMODIS
+from geoimagine.postgresdb import ManageProcess, ManageRegion, ManageMODIS
 
-from gis import kt_gis as ktgis
+from geoimagine.gis import kt_gis as ktgis
 
-from params import JsonParams
+from geoimagine.params import JsonParams
 
-from params.layers import VectorLayer
+from geoimagine.params.layers import VectorLayer
  
 def DbConnect(db):
     '''

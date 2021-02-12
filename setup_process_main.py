@@ -1,13 +1,14 @@
 '''
 Created on 21 feb. 2018
 Updated on 28 jan 2021
+Last update on 12 Feb 2021
 
 @author: thomasgumbricht
 '''
 
 # Package application imports
 
-from setup_processes import SetupProcessesRegions, ModisTileCoords, Ease2NTileCoords6391
+from geoimagine.setup_processes import SetupProcessesRegions, ModisTileCoords, Ease2NTileCoords6391
 
 def SetupDefaultRegions(prodDB):
     ''' Setup of global default regions and projection system tiling etc
