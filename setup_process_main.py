@@ -8,7 +8,7 @@ Last update on 12 Feb 2021
 
 # Package application imports
 
-from geoimagine.setup_processes import SetupProcessesRegions, ModisTileCoords, Ease2NTileCoords6391
+from geoimagine.setup_processes import SetupProcessesRegions, ModisTileCoords, Ease2PolarTileCoords, Ease2GlobalTileCoords
 
 def SetupDefaultRegions(prodDB):
     ''' Setup of global default regions and projection system tiling etc
@@ -54,14 +54,16 @@ def SetupDefaultRegions(prodDB):
         exit(exitstr)
         '''
         
-        projFN = 'modis_karttur_setup_20210127.txt'
+        #projFN = 'modis_karttur_setup_20210127.txt'
         
-        SetupProcessesRegions('modisdoc', projFN, prodDB)
+        #SetupProcessesRegions('modisdoc', projFN, prodDB)
         
     if EASE2:
-        '''Stand alone script that defines the EASE grid tile coordinates'''
+        '''Stand alone script that defines EASE grid tile coordinates'''
         
-        Ease2NTileCoords6391(prodDB)
+        Ease2PolarTileCoords(prodDB)
+        
+        Ease2GlobalTileCoords(prodDB)
         
     if Landsat:
         
@@ -139,6 +141,6 @@ if __name__ == "__main__":
     SetupProcesses(prodDB)
     
     # SetupDefaultRegions starts a subroutine with different region processing
-    SetupDefaultRegions(prodDB)
+    #SetupDefaultRegions(prodDB)
     
     exit(' REACHED THE END! ')
